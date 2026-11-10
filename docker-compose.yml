@@ -5,21 +5,23 @@ services:
       POSTGRES_USER: shiftguard
       POSTGRES_PASSWORD: shiftguard
       POSTGRES_DB: shiftguard
-    ports: ["5432:5432"]
+    # Port côté PC configurable (DB_PORT dans .env) : sous Windows, 5432 est parfois réservé.
+    ports: ["${DB_PORT:-5432}:5432"]
     volumes: [pgdata:/var/lib/postgresql/data]
 
   redis:
     image: redis:7-alpine
     ports: ["6379:6379"]
 
-  minio:
-    image: minio/minio
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: shiftguard
-      MINIO_ROOT_PASSWORD: shiftguard-secret
-    ports: ["9000:9000", "9001:9001"]
-    volumes: [miniodata:/data]
+  # Stockage S3-compatible (documents des agents). Utile à partir du M3 :
+  # docker compose --profile storage up -d
+  # MinIO n'est plus publié sur Docker Hub depuis 2026, remplacé par SeaweedFS.
+  storage:
+    image: chrislusf/seaweedfs:4.47
+    command: server -dir=/data -s3 -s3.port=8333
+    ports: ["8333:8333"]
+    volumes: [s3data:/data]
+    profiles: [storage, full]
 
   api:
     build: ./apps/api
@@ -43,4 +45,4 @@ services:
 
 volumes:
   pgdata:
-  miniodata:
+  s3data:

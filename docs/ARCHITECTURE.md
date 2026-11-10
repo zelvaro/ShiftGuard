@@ -21,7 +21,7 @@
                          ┌────────────────┴───────────────┐
                          ▼                                ▼
                  ┌──────────────┐                 ┌──────────────┐
-                 │  PostgreSQL  │                 │ S3 / MinIO   │
+                 │  PostgreSQL  │                 │ S3 SeaweedFS │
                  └──────────────┘                 │ (documents)  │
                                                   └──────────────┘
 ```
@@ -60,7 +60,7 @@ Toutes les tables métier portent un `tenant_id`.
      | 5 | Disponibilité | liste (jour, nuit, week-end, immédiate) |
 
    - à la dernière étape : calcul du score par règles, statut `screened`, message de confirmation.
-4. Si le candidat envoie un vocal, une image ou un fichier : le média est stocké (MinIO) et rattaché au candidat pour que le RH puisse l'écouter, puis le bot répète la question en cours.
+4. Si le candidat envoie un vocal, une image ou un fichier : le média est stocké (S3) et rattaché au candidat pour que le RH puisse l'écouter, puis le bot répète la question en cours.
 5. Le RH voit les candidats triés par score dans le back-office.
 
 En V2, un vocal sera transcrit puis analysé par un LLM pour pré-remplir les réponses ; le bot ne posera plus que les questions restées sans réponse (voir `PLAN.md` §3).

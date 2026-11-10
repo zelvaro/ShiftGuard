@@ -50,7 +50,7 @@ Le code V2 est déjà isolé dans `app/services/ai/` (fonctions vides pour l'ins
 
 ## Stockage — S3-compatible
 
-- MinIO en local, n'importe quel S3 en prod. Les fichiers ne vont jamais en base, seulement leur clé.
+- SeaweedFS en local (MinIO n'est plus distribué gratuitement), n'importe quel S3 en prod. Les fichiers ne vont jamais en base, seulement leur clé.
 
 ## Hébergement (à décider plus tard)
 
