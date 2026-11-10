@@ -63,5 +63,5 @@ class AgentDocument(IdTimestampMixin, TenantMixin, Base):
     __tablename__ = "agent_documents"
     agent_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("agents.id", ondelete="CASCADE"))
     type: Mapped[DocumentType] = mapped_column(str_enum(DocumentType))
-    storage_key: Mapped[str] = mapped_column(String(500))  # clé S3/MinIO, jamais le fichier en BDD
+    storage_key: Mapped[str] = mapped_column(String(500))  # clé S3, jamais le fichier en BDD
     expires_on: Mapped[date | None] = mapped_column(Date)

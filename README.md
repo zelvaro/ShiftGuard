@@ -35,7 +35,7 @@ Hors MVP : vocal et IA (V2), paie à la mission, facturation clients, applicatio
 | Front-end | **Next.js 16**, React 19, TypeScript, Tailwind CSS 4 |
 | Messagerie | **WhatsApp Cloud API** (Meta, officielle) |
 | IA (V2) | Whisper (transcription darija/FR/AR) + LLM pour l'extraction structurée, fournisseur interchangeable |
-| Stockage fichiers | S3-compatible (MinIO en local) |
+| Stockage fichiers | S3-compatible (SeaweedFS en local) |
 | Dev | Docker Compose, pytest, ruff, ESLint |
 
 Détails et justifications : [`docs/STACK.md`](docs/STACK.md) · Architecture : [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · Plan : [`docs/PLAN.md`](docs/PLAN.md)
@@ -57,7 +57,7 @@ ShiftGuard/
 │   │   └── tests/
 │   └── web/                 # Next.js (back-office)
 ├── docs/
-├── docker-compose.yml       # Postgres, Redis, MinIO (+ api/worker avec --profile full)
+├── docker-compose.yml       # Postgres, Redis (+ stockage S3 avec --profile storage, tout avec --profile full)
 └── .env.example
 ```
 
@@ -69,7 +69,7 @@ Prérequis : Docker Desktop, Python 3.12+, Node.js 20+.
 # 1. Variables d'environnement
 cp .env.example .env
 
-# 2. Infra (Postgres, Redis, MinIO)
+# 2. Infra (Postgres, Redis)
 docker compose up -d
 
 # 3. API
