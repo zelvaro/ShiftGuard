@@ -77,7 +77,6 @@ cd apps/api
 python -m venv .venv
 .venv\Scripts\activate          # Windows  (Linux/macOS : source .venv/bin/activate)
 pip install -e ".[dev]"
-alembic revision --autogenerate -m "init"
 alembic upgrade head
 uvicorn app.main:app --reload    # http://localhost:8000/docs
 

@@ -1,9 +1,9 @@
 import enum
 
-from sqlalchemy import Enum, String
+from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, IdTimestampMixin, TenantMixin
+from app.models.base import Base, IdTimestampMixin, TenantMixin, str_enum
 
 
 class Tenant(IdTimestampMixin, Base):
@@ -27,4 +27,4 @@ class User(IdTimestampMixin, TenantMixin, Base):
     email: Mapped[str] = mapped_column(String(255), unique=True)
     full_name: Mapped[str] = mapped_column(String(200))
     password_hash: Mapped[str] = mapped_column(String(255))
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.PLANNER)
+    role: Mapped[UserRole] = mapped_column(str_enum(UserRole), default=UserRole.PLANNER)
