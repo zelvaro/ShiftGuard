@@ -1,0 +1,45 @@
+name: Migrations
+
+on:
+  push:
+    branches: [main]
+    paths: ["apps/api/**"]
+  pull_request:
+    paths: ["apps/api/**"]
+
+jobs:
+  alembic:
+    name: Alembic (upgrade / check / downgrade)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: shiftguard
+          POSTGRES_PASSWORD: shiftguard
+          POSTGRES_DB: shiftguard
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U shiftguard"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://shiftguard:shiftguard@localhost:5432/shiftguard
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/api/pyproject.toml
+      - run: pip install -e ".[dev]"
+      - name: Upgrade to head
+        run: alembic upgrade head
+      - name: Models and migrations are in sync
+        run: alembic check
+      - name: Downgrade then upgrade again
+        run: alembic downgrade base && alembic upgrade head

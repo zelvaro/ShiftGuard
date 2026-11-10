@@ -2,10 +2,10 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, String
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, IdTimestampMixin, TenantMixin
+from app.models.base import Base, IdTimestampMixin, TenantMixin, str_enum
 
 
 class Site(IdTimestampMixin, TenantMixin, Base):
@@ -34,7 +34,7 @@ class Shift(IdTimestampMixin, TenantMixin, Base):
     agent_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("agents.id"))
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    status: Mapped[ShiftStatus] = mapped_column(Enum(ShiftStatus), default=ShiftStatus.OPEN)
+    status: Mapped[ShiftStatus] = mapped_column(str_enum(ShiftStatus), default=ShiftStatus.OPEN)
 
 
 class CheckMethod(enum.StrEnum):
@@ -51,6 +51,6 @@ class Attendance(IdTimestampMixin, TenantMixin, Base):
     agent_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("agents.id"))
     check_in_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     check_out_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    method: Mapped[CheckMethod] = mapped_column(Enum(CheckMethod))
+    method: Mapped[CheckMethod] = mapped_column(str_enum(CheckMethod))
     latitude: Mapped[float | None] = mapped_column(Float)
     longitude: Mapped[float | None] = mapped_column(Float)
