@@ -14,6 +14,11 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://shiftguard:shiftguard@localhost:5432/shiftguard"
     redis_url: str = "redis://localhost:6379/0"
 
+    # Auth : changer jwt_secret en prod (au moins 32 caractères aléatoires)
+    jwt_secret: str = "dev-only-change-me-dev-only-change-me"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60 * 12
+
     # WhatsApp Cloud API (Meta)
     whatsapp_verify_token: str = "change-me"
     whatsapp_access_token: str = ""
