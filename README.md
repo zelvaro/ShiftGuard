@@ -1,6 +1,6 @@
 # ShiftGuard
 
-**Recrutement, planning et pointage des agents de sécurité — piloté par WhatsApp et l'IA.**
+**Recrutement, planning et pointage des agents de sécurité — piloté par WhatsApp.**
 
 ShiftGuard est un SaaS B2B pour les sociétés de gardiennage et d'intérim au Maroc. Il remplace les tableaux Excel, les groupes WhatsApp et les appels de dernière minute par un outil unique, pensé pour des centaines d'agents répartis sur plusieurs sites.
 
@@ -8,7 +8,7 @@ ShiftGuard est un SaaS B2B pour les sociétés de gardiennage et d'intérim au M
 
 ## Le problème
 
-- Les candidats postulent par WhatsApp, souvent en **note vocale en darija** : impossible à trier à la main en volume.
+- Les candidats postulent par WhatsApp, en messages épars ou en notes vocales : impossible à trier à la main en volume.
 - Le planning des shifts vit dans Excel ; une absence = des dizaines d'appels pour trouver un remplaçant.
 - Le pointage sur site est déclaratif et difficile à vérifier.
 - Les documents obligatoires (CIN, casier, carte professionnelle) expirent sans que personne ne le voie.
@@ -17,13 +17,13 @@ ShiftGuard est un SaaS B2B pour les sociétés de gardiennage et d'intérim au M
 
 | Module | Ce qu'il fait |
 |---|---|
-| **Recrutement WhatsApp** | Le candidat écrit ou envoie un vocal → transcription → extraction du profil par IA → score → shortlist dans le back-office |
+| **Recrutement WhatsApp** | Le candidat répond à des questions guidées (boutons, listes) → profil rempli → score → shortlist dans le back-office. Les vocaux reçus sont gardés pour écoute par le RH |
 | **Planning** | Sites, shifts, affectation des agents, vue semaine |
 | **Remplacements** | Shift sans agent → l'outil propose et contacte des agents disponibles par WhatsApp |
 | **Pointage** | Check-in / check-out par QR code du site ou géolocalisation (geofence) |
 | **Documents** | Stockage des pièces, alertes avant expiration |
 
-Hors MVP : paie à la mission, facturation clients, application mobile native, tarification.
+Hors MVP : vocal et IA (V2), paie à la mission, facturation clients, application mobile native, tarification.
 
 ## Stack
 
@@ -34,11 +34,11 @@ Hors MVP : paie à la mission, facturation clients, application mobile native, t
 | Tâches asynchrones | **Redis + arq** (traitement des messages, crons d'alertes) |
 | Front-end | **Next.js 16**, React 19, TypeScript, Tailwind CSS 4 |
 | Messagerie | **WhatsApp Cloud API** (Meta, officielle) |
-| IA | Whisper (transcription darija/FR/AR) + LLM pour l'extraction structurée, fournisseur interchangeable |
+| IA (V2) | Whisper (transcription darija/FR/AR) + LLM pour l'extraction structurée, fournisseur interchangeable |
 | Stockage fichiers | S3-compatible (MinIO en local) |
 | Dev | Docker Compose, pytest, ruff, ESLint |
 
-Détails et justifications : [`docs/STACK.md`](docs/STACK.md) · Architecture : [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+Détails et justifications : [`docs/STACK.md`](docs/STACK.md) · Architecture : [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · Plan : [`docs/PLAN.md`](docs/PLAN.md)
 
 ## Structure du dépôt
 
@@ -51,7 +51,7 @@ ShiftGuard/
 │   │   │   ├── core/        # config, base de données
 │   │   │   ├── models/      # tenants, workforce (candidats, agents, documents), operations (sites, shifts, pointages)
 │   │   │   ├── schemas/     # modèles Pydantic
-│   │   │   ├── services/    # client WhatsApp, IA (transcription, extraction, scoring)
+│   │   │   ├── services/    # client WhatsApp, scoring, IA (V2 : transcription, extraction)
 │   │   │   └── workers/     # tâches arq
 │   │   ├── migrations/      # Alembic
 │   │   └── tests/
@@ -98,12 +98,13 @@ Tests et lint de l'API : `pytest` et `ruff check .` depuis `apps/api`.
 
 - [x] Squelette monorepo, modèle de données, webhook WhatsApp
 - [ ] Authentification (JWT) et gestion des tenants / utilisateurs
-- [ ] Pipeline candidat : transcription → extraction → scoring → réponse WhatsApp
+- [ ] Recrutement WhatsApp guidé : questions à étapes → profil → scoring
 - [ ] Back-office : liste des candidats, sites, planning semaine
 - [ ] Pointage QR / GPS
 - [ ] Remplacements automatiques
 - [ ] Alertes d'expiration des documents
 - [ ] Pilote avec 2–3 sociétés de gardiennage
+- [ ] V2 : vocal (transcription + extraction IA)
 
 ## Conformité
 

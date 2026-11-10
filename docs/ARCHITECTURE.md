@@ -14,8 +14,8 @@
                                            │ enqueue
                                            ▼
                                  ┌──────────────────┐      ┌──────────────┐
-                                 │  Redis  +  arq   │─────▶│ IA : Whisper │
-                                 │  (worker)        │      │      + LLM   │
+                                 │  Redis  +  arq   │ ···▶ │ IA (V2) :    │
+                                 │  (worker)        │      │ Whisper + LLM│
                                  └────────┬─────────┘      └──────────────┘
                                           │
                          ┌────────────────┴───────────────┐
@@ -32,7 +32,7 @@
 |---|---|
 | `tenants` | Société cliente |
 | `users` | Utilisateurs back-office (admin, planner, supervisor) |
-| `candidates` | Candidats WhatsApp : messages, extraction IA, score, statut |
+| `candidates` | Candidats WhatsApp : réponses au questionnaire, étape de conversation, score, statut |
 | `agents` | Agents employés (issus d'un candidat ou créés à la main) |
 | `agent_documents` | CIN, casier, carte pro… avec date d'expiration |
 | `sites` | Sites clients, coordonnées GPS, rayon de geofence, secret QR |
@@ -41,17 +41,29 @@
 
 Toutes les tables métier portent un `tenant_id`.
 
-## Flux 1 — Candidature WhatsApp
+## Flux 1 — Candidature WhatsApp (V1 : questions guidées)
 
-1. Le candidat écrit ou envoie un vocal au numéro de la société.
-2. Meta appelle `POST /api/v1/webhooks/whatsapp` → l'API répond 200 tout de suite et met le message en file.
+1. Le candidat écrit au numéro de la société.
+2. Meta appelle `POST /api/v1/webhooks/whatsapp` → l'API vérifie la signature, répond 200 tout de suite et met le message en file.
 3. Le worker (`process_incoming_message`) :
+   - ignore le message s'il a déjà été traité (idempotence par `message.id`) ;
    - retrouve le tenant via `phone_number_id`, puis le candidat via son numéro (ou le crée) ;
-   - si audio : télécharge le média → transcription Whisper ;
-   - concatène les messages → LLM → `CandidateExtraction` (JSON validé) ;
-   - calcule le score, met à jour le statut ;
-   - pose la question manquante suivante au candidat (ville, carte pro, disponibilité…).
-4. Le RH voit les candidats triés par score dans le back-office.
+   - lit l'étape de conversation du candidat et enregistre la réponse reçue (bouton, liste ou texte court) ;
+   - envoie la question suivante en message interactif :
+
+     | Étape | Question | Format |
+     |---|---|---|
+     | 1 | Nom complet | texte |
+     | 2 | Ville | liste |
+     | 3 | Carte professionnelle ? | boutons oui / non |
+     | 4 | Années d'expérience | liste (0, 1-2, 3-5, 5+) |
+     | 5 | Disponibilité | liste (jour, nuit, week-end, immédiate) |
+
+   - à la dernière étape : calcul du score par règles, statut `screened`, message de confirmation.
+4. Si le candidat envoie un vocal, une image ou un fichier : le média est stocké (MinIO) et rattaché au candidat pour que le RH puisse l'écouter, puis le bot répète la question en cours.
+5. Le RH voit les candidats triés par score dans le back-office.
+
+En V2, un vocal sera transcrit puis analysé par un LLM pour pré-remplir les réponses ; le bot ne posera plus que les questions restées sans réponse (voir `PLAN.md` §3).
 
 ## Flux 2 — Remplacement
 

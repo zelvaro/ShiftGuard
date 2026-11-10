@@ -1,10 +1,10 @@
 # Proposition de stack
 
-Principe : une stack que l'on maîtrise, rapide à livrer, et où l'IA est un citoyen de première classe.
+Principe : une stack que l'on maîtrise, rapide à livrer, et prête à accueillir l'IA en V2 sans refonte.
 
 ## Back-end — FastAPI (Python 3.12)
 
-- **Pourquoi** : l'essentiel de la valeur est dans l'IA (transcription, extraction, scoring) ; tout l'écosystème IA est en Python. Un seul langage côté serveur.
+- **Pourquoi** : la V2 ajoutera l'IA (transcription, extraction) et tout l'écosystème IA est en Python. Un seul langage côté serveur dès la V1.
 - FastAPI : typage Pydantic, doc OpenAPI auto (`/docs`), async natif pour les appels WhatsApp/LLM.
 - **SQLAlchemy 2** (ORM typé) + **Alembic** (migrations).
 - Alternative écartée : NestJS — bon choix, mais deux langages pour un dev solo.
@@ -13,11 +13,11 @@ Principe : une stack que l'on maîtrise, rapide à livrer, et où l'IA est un ci
 
 - Données très relationnelles (tenant → sites → shifts → pointages → agents).
 - Multi-tenant **par colonne `tenant_id`** : le plus simple pour démarrer. Évolution possible vers le Row-Level Security de Postgres.
-- `JSON` pour la sortie brute de l'IA sur les candidats.
+- `JSON` pour les réponses au questionnaire (et, en V2, la sortie brute de l'IA).
 
 ## File de tâches — Redis + arq
 
-- Meta exige une réponse rapide au webhook : le traitement (téléchargement du vocal, transcription, LLM) part en tâche de fond.
+- Meta exige une réponse rapide au webhook : le traitement (enregistrement de la réponse, envoi de la question suivante, stockage des médias) part en tâche de fond.
 - **arq** : léger, async, suffisant pour le MVP. Celery serait plus lourd sans gain ici.
 - Sert aussi aux crons (alertes d'expiration, rappels de shift).
 
@@ -30,18 +30,23 @@ Principe : une stack que l'on maîtrise, rapide à livrer, et où l'IA est un ci
 ## WhatsApp — Cloud API officielle (Meta)
 
 - Seule option fiable et autorisée (les librairies non officielles font bannir les numéros).
+- Messages interactifs (boutons jusqu'à 3 choix, listes jusqu'à 10) : la base du questionnaire candidat.
 - Gratuit à l'entrée, facturation par conversation ensuite. Un numéro par tenant (ou un numéro ShiftGuard partagé au début).
 - Messages sortants hors fenêtre de 24 h = **templates** à faire valider par Meta (ex. proposition de remplacement).
 
-## IA
+## Qualification des candidats
+
+**V1 — sans IA** : questions guidées par messages interactifs WhatsApp (boutons et listes). Les réponses remplissent directement le profil, le score est calculé par des règles explicables (`score_candidate`). Rien à entraîner ni à payer, et fiable dès le premier jour.
+
+**V2 — vocal et IA**, une fois des vocaux réels collectés pendant le pilote :
 
 | Besoin | Choix | Note |
 |---|---|---|
-| Transcription vocale | Whisper (`whisper-large-v3`) via Groq ou OpenAI | À tester tôt sur de vrais vocaux en darija |
+| Transcription vocale | Whisper (`whisper-large-v3`) via Groq ou OpenAI | À évaluer sur de vrais vocaux en darija |
 | Extraction du profil | LLM avec sortie JSON validée par Pydantic | Prompt + schéma `CandidateExtraction` |
-| Scoring | Règles simples et explicables d'abord | Le LLM extrait, le code note : plus prévisible |
+| Scoring | Mêmes règles qu'en V1 | Le LLM extrait, le code note : plus prévisible |
 
-Le fournisseur est isolé derrière `app/services/ai/` pour pouvoir en changer sans toucher au reste.
+Le code V2 est déjà isolé dans `app/services/ai/` (fonctions vides pour l'instant).
 
 ## Stockage — S3-compatible
 
